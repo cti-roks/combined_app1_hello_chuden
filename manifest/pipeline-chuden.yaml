@@ -1,0 +1,82 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: build-and-deploy-app1
+spec:
+  params:
+    - default: 'jp.icr.io/cti-roks-training/cicd-app1:latest'
+      name: IMAGE_NAME
+      type: string
+    - default: 'https://github.com/cti-roks/combined_app1_hello_chuden.git'
+      name: GIT_REPO
+      type: string
+    - default: main
+      name: GIT_REVISION
+      type: string
+  tasks:
+    - name: fetch-repository
+      params:
+        - name: URL
+          value: $(params.GIT_REPO)
+        - name: REVISION
+          value: $(params.GIT_REVISION)
+        - name: SUBDIRECTORY
+          value: ''
+        - name: DELETE_EXISTING
+          value: 'true'
+      taskRef:
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
+        resolver: cluster
+      workspaces:
+        - name: output
+          workspace: workspace
+    - name: build
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE_NAME)
+        - name: TLS_VERIFY
+          value: 'false'
+        - name: IMAGE_PUSH
+          value: 'true'
+      runAfter:
+        - fetch-repository
+      taskRef:
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: buildah
+          - name: namespace
+            value: openshift-pipelines
+        resolver: cluster
+      workspaces:
+        - name: source
+          workspace: workspace
+    - name: deploy
+      params:
+        - name: SCRIPT
+          value: |
+            oc apply -f /workspace/manifest_dir/deploy.yaml
+            oc rollout restart deployment app-combined
+      runAfter:
+        - build
+      taskRef:
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: openshift-client
+          - name: namespace
+            value: openshift-pipelines
+        resolver: cluster
+      workspaces:
+        - name: manifest_dir
+          workspace: workspace
+  workspaces:
+    - name: workspace
