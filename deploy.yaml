@@ -23,7 +23,7 @@ spec:
           image: jp.icr.io/cti-roks-training/cicd-app2:latest  # app2のパイプラインで更新される
           ports:
             - name: http-app2
-              containerPort: 8081
+              containerPort: 8089
               protocol: TCP
       imagePullSecrets:
         - name: all-icr-io
@@ -39,9 +39,9 @@ spec:
       protocol: TCP
       targetPort: 8080
     - name: http-app2
-      port: 8081
+      port: 8089
       protocol: TCP
-      targetPort: 8081
+      targetPort: 8089
   selector:
     app: app-combined
 ---
