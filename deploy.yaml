@@ -17,7 +17,7 @@ spec:
           image: jp.icr.io/cti-roks-training/cicd-app1:latest  # app1のパイプラインで更新される
           ports:
             - name: http-app1
-              containerPort: 8080
+              containerPort: 8081
               protocol: TCP
         - name: app2
           image: jp.icr.io/cti-roks-training/cicd-app2:latest  # app2のパイプラインで更新される
@@ -35,9 +35,9 @@ metadata:
 spec:
   ports:
     - name: http-app1
-      port: 8080
+      port: 8081
       protocol: TCP
-      targetPort: 8080
+      targetPort: 8081
     - name: http-app2
       port: 8089
       protocol: TCP
